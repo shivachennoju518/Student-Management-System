@@ -1,0 +1,103 @@
+//package com.Controller;
+//
+//import com.DTO.LoginRequest;
+//import com.DTO.LoginResponse;
+//import com.jwt.JwtUtils;
+//import jakarta.validation.Valid;
+//import lombok.RequiredArgsConstructor;
+//import org.springframework.http.ResponseEntity;
+//import org.springframework.security.authentication.*;
+//import org.springframework.security.core.*;
+//import org.springframework.security.core.context.SecurityContextHolder;
+//import org.springframework.security.core.userdetails.UserDetails;
+//import org.springframework.web.bind.annotation.*;
+//
+//@RestController
+//@RequestMapping("/api/auth")
+//@RequiredArgsConstructor
+//public class AuthController {
+//
+//    private final AuthenticationManager authenticationManager;
+//    private final JwtUtils jwtUtils;
+//
+//    @PostMapping("/login")
+//    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+//
+//        Authentication auth = authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(
+//                        request.getEmail(), request.getPassword())
+//        );
+//
+//        SecurityContextHolder.getContext().setAuthentication(auth);
+//        UserDetails user = (UserDetails) auth.getPrincipal();
+//
+//        String role = user.getAuthorities().iterator()
+//                .next().getAuthority().replace("ROLE_","");
+//
+//        String token = jwtUtils.generateToken(user.getUsername(), role);
+//
+//        return ResponseEntity.ok(new LoginResponse(user.getUsername(), role, token));
+//    }
+//}
+
+import com.DTO.LoginRequest;
+import com.DTO.LoginResponse;
+import com.DTO.StudentResponseDTO;
+import com.Service.StudentService;
+import com.jwt.JwtUtils;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
+    private final StudentService studentService;
+
+    @PostMapping("/register")
+    public ResponseEntity<StudentResponseDTO> register(
+            @Valid @RequestBody RegisterRequest request) {
+
+        StudentResponseDTO student = studentService.registerUser(request);
+        return ResponseEntity.ok(student);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(), request.getPassword())
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        UserDetails user = (UserDetails) auth.getPrincipal();
+
+        String role = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("ROLE_USER")
+                .replace("ROLE_", "");
+
+        String token = jwtUtils.generateToken(user.getUsername(), role);
+
+        return ResponseEntity.ok(
+                new LoginResponse(user.getUsername(), role, token)
+        );
+    }
+}
