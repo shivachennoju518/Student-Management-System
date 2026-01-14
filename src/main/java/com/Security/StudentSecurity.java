@@ -16,12 +16,12 @@ public class StudentSecurity {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // 1️⃣ Block unauthenticated access
+        // 1 Block unauthenticated access
         if (auth == null || !auth.isAuthenticated()) return false;
 
         String email = auth.getName();
 
-        // 2️⃣ ONE DB call – clean & safe
+        // 2 ONE DB call – clean & safe
         return studentRepo.findByEmail(email)
                 .map(student -> student.getId().equals(id))
                 .orElse(false);
