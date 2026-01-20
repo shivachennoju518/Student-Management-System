@@ -83,5 +83,35 @@ public class StudentServiceImpl implements StudentService {
         if (!repo.existsById(id)) throw new CustomException("Student not found");
         repo.deleteById(id);
     }
+    @Override
+    public StudentResponseDTO getByEmail(String email) {
+        Student student = repo.findByEmail(email)
+                .orElseThrow(() -> new CustomException("User not found"));
+
+        return mapper.toResponse(student);
+    }
+    @Override
+    public StudentResponseDTO updateByEmail(String email, StudentUpdateDTO dto) {
+
+        Student student = repo.findByEmail(email)
+                .orElseThrow(() -> new CustomException("User not found"));
+
+        // Update only allowed fields
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            student.setName(dto.getName());
+        }
+
+        if (dto.getDepartment() != null && !dto.getDepartment().isBlank()) {
+            student.setDepartment(dto.getDepartment());
+        }
+
+        // ❌ Do NOT allow email / role / password updates here
+
+        Student updatedStudent = repo.save(student);
+
+        return mapper.toResponse(updatedStudent);
+    }
+
+
 }
 

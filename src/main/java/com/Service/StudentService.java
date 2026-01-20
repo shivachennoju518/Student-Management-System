@@ -12,5 +12,7 @@ public interface StudentService {
     StudentResponseDTO updateStudent(Long id, StudentUpdateDTO dto);
     void deleteStudent(Long id);
     StudentResponseDTO registerUser(StudentCreateDTO dto); // Public registration
+     StudentResponseDTO getByEmail(String email);
+    StudentResponseDTO updateByEmail(String email, StudentUpdateDTO dto);
 
 }

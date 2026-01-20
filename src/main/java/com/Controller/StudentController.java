@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,4 +51,25 @@ public class StudentController {
         studentService.deleteStudent(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @GetMapping("/me")
+    public ResponseEntity<StudentResponseDTO> getMyProfile(Authentication auth) {
+        return ResponseEntity.ok(
+                studentService.getByEmail(auth.getName())
+        );
+    }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PutMapping("/me")
+    public ResponseEntity<StudentResponseDTO> updateMyProfile(
+            Authentication auth,
+            @RequestBody StudentUpdateDTO dto) {
+
+        StudentResponseDTO updated =
+                studentService.updateByEmail(auth.getName(), dto);
+
+        return ResponseEntity.ok(updated); // ✅ MUST return body
+    }
+
 }
